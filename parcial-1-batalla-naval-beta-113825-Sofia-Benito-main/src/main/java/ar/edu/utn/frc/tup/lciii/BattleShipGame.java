@@ -1,5 +1,6 @@
 package ar.edu.utn.frc.tup.lciii;
 
+import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
@@ -136,7 +137,7 @@ public class BattleShipGame {
                 this.appShips.add(new Ship(position, ShipStatus.AFLOAT));
             }
         } while (this.appShips.size() < FLEET_SIZE);
-        appFleetBoard.setShipPositions(playerShips);
+        appFleetBoard.setShipPositions(appShips);
     }
 
     /**
@@ -156,7 +157,13 @@ public class BattleShipGame {
      *
      */
     public void getPlayerFleetPositions() {
-
+        do {
+            Position position = this.getPosition();
+            if(isAvailablePosition(playerShips, position)) {
+                this.playerShips.add(new Ship(position, ShipStatus.AFLOAT));
+            }
+        }
+        while (playerShips.size() < FLEET_SIZE);
     }
 
 
@@ -178,7 +185,20 @@ public class BattleShipGame {
      *
      */
     public void getPlayerShot() {
+        Position position = this.getPosition();
+        if (!playerShots.contains(position)){
+            playerShots.add(position);
+            if (impactEnemyShip(appShips, position)){
+                playerEnemyFleetBoard.setShipOnBoard(position);
+            }
+            else {
+                playerEnemyFleetBoard.setWaterOnBoard(position);
+            }
 
+        }
+        else {
+            System.out.println("\nYa tiraste ese tiro maestro... A quien vas a matar asi...");
+        }
 
     }
 
@@ -286,7 +306,14 @@ public class BattleShipGame {
      * @return true si el disparo impacta, false si no lo hace.
      */
     private Boolean impactEnemyShip(List<Ship> fleetEnemyShips, Position shot) {
-
+        Boolean isImpact = false;
+        for (Ship ship : fleetEnemyShips){
+            if (ship.getPosition().equals(shot)){
+                isImpact = true;
+                ship.sinkShip();
+            }
+        }
+        return isImpact;
     }
 
 
@@ -343,17 +370,19 @@ public class BattleShipGame {
     private Position getPosition() {
         Position position = null;
         do {
-            System.out.println("Ingrese una coordenada en un formato de dos numeros " +
-                    "enteros entre 0 y 9 separados por un espacio en blanco.");
-
+            System.out.println("Ingrese una coordenada: ");
             String input = scanner.nextLine();
 
             if (isValidPositionInput(input)) {
                 //TODO: Separar los enteros de input en dos Integers y crear Position
+                String[] numbers = input.split(" ");
+                Integer row = Integer.parseInt(numbers[0]);
+                Integer column = Integer.parseInt(numbers[1]);
+                position = new Position(row, column);
 
             } else {
                 // TODO: Mostrar un mensaje de error sobre como ingreso los datos
-
+                System.out.println("Error: La entrada debe ser dos numeros enteros entre 0 y 9 separados por un espacio en blanco.");
             }
         } while(position == null);
         return position;
@@ -438,9 +467,18 @@ public class BattleShipGame {
      */
     private Boolean isAvailablePosition(List<Ship> listToCheck, Position position) {
         // TODO: Validar que la lista de Ship NO tenga un Ship con la posision indicada
-
+        Boolean isAvailable = true;
+        for(Ship ship : listToCheck){
+            if (ship.getPosition().equals(position)){
+                isAvailable = false;
+                break;
+            }
+            else {
+                isAvailable = true;
+            }
+        }
         // TODO: Remember to replace the return statement with the correct object
-        return null;
+        return isAvailable;
     }
 
 }
